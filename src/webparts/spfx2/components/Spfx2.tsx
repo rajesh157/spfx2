@@ -14,24 +14,39 @@ const dropdownStyles: Partial<IDropdownStyles> = {
   dropdown: { width: 300 }
 };
 
-const options: IDropdownOption[] = [
-  { key: 'fruitsHeader', text: 'Fruits', itemType: DropdownMenuItemType.Header },
-  { key: 'apple', text: 'Apple' },
-  { key: 'banana', text: 'Banana' },
-  { key: 'orange', text: 'Orange', disabled: true },
-  { key: 'grape', text: 'Grape' },
-  { key: 'divider_1', text: '-', itemType: DropdownMenuItemType.Divider },
-  { key: 'vegetablesHeader', text: 'Vegetables', itemType: DropdownMenuItemType.Header },
-  { key: 'broccoli', text: 'Broccoli' },
-  { key: 'carrot', text: 'Carrot' },
-  { key: 'lettuce', text: 'Lettuce' }
-];
+
 export default class Spfx2 extends React.Component<ISpfx2Props, ISpfxState> {
   constructor(props: ISpfx2Props, state: ISpfxState){
     super(props);
     this.state = {
-      addUsers: []
+      addUsers: [],
+      options: [],
+      category: ""
     };
+  }
+  public componentDidMount() {  
+     /* const options = [
+      { key: 'fruitsHeader', text: 'Fruits', itemType: DropdownMenuItemType.Header },
+      { key: 'apple', text: 'Apples' },
+      { key: 'banana', text: 'Banana' },
+      { key: 'orange', text: 'Orange', disabled: true },
+      { key: 'grape', text: 'Grape' },
+      { key: 'divider_1', text: '-', itemType: DropdownMenuItemType.Divider },
+      { key: 'vegetablesHeader', text: 'Vegetables', itemType: DropdownMenuItemType.Header },
+      { key: 'broccoli', text: 'Broccoli' },
+      { key: 'carrot', text: 'Carrot' },
+      { key: 'lettuce', text: 'Lettuce' }
+    ];*/
+    var vArr =[];
+    vArr.length = 0;
+    sp.web.lists.getByTitle("Category").items.get().then((items: any[]) => {
+      items.forEach((item: any)=>vArr.push({key: item.Id, text: item.Title}));
+  });
+  
+    
+
+
+    this.setState({options: vArr});
   }
   public render(): React.ReactElement<ISpfx2Props> {
     return (
@@ -54,7 +69,7 @@ export default class Spfx2 extends React.Component<ISpfx2Props, ISpfxState> {
                 showHiddenInUI={false}    
                 principalTypes={[PrincipalType.User]}    
                 resolveDelay={1000} />   
-                <Dropdown placeholder="Select an option" label="Basic uncontrolled example" options={options} styles={dropdownStyles} />
+                <Dropdown placeholder="Select an option" onChanged={this.ddlCatChanged} label="Basic uncontrolled example" options={this.state.options} styles={dropdownStyles} />
               <DefaultButton    
                 data-automation-id="addSelectedUsers"    
                 title="Add Selected Users"    
@@ -68,6 +83,12 @@ export default class Spfx2 extends React.Component<ISpfx2Props, ISpfxState> {
       </div>
     );
   }
+
+  @autobind   
+private ddlCatChanged(option: IDropdownOption, index?: number): void { 
+  var strCat: any = option.key;
+  this.setState({category : strCat});
+}
   @autobind   
 private addSelectedUsers(): void {   
   sp.web.lists.getByTitle("Employees").items.add({  
@@ -75,10 +96,13 @@ private addSelectedUsers(): void {
     TeamsId: {
       results: this.state.addUsers
   },
-  MangerId: 2
+  CategoryId: this.state.category,
+  MangerId: 3
   }).then(i => {  
       alert(i);
   }).catch(e => { alert(e); });  
+
+
 
 }
 @autobind
